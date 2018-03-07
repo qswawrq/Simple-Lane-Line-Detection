@@ -11,14 +11,14 @@ import cv2
 
 # Parameters for image processing
 path = "resource/images/"
-image_index = 1
+image_index = 4
 kernel_size = 5
 canny_low = 75
 canny_high = 175
 top_left_corner_percentage_x = 0.4
 top_right_corner_percentage_x = 0.6
-bottom_left_corner_percentage_x = 0.1
-bottom_right_corner_percentage_x = 0.9
+bottom_left_corner_percentage_x = 0.08
+bottom_right_corner_percentage_x = 0.92
 top_left_corner_percentage_y = 0.65
 top_right_corner_percentage_y = 0.65
 bottom_left_corner_percentage_y = 1
@@ -42,8 +42,15 @@ def generate_mask(image):
     top_right = [math.floor(top_right_corner_percentage_x * dimension[1]), math.floor(top_right_corner_percentage_y * dimension[0])]
     bottom_left = [math.floor(bottom_left_corner_percentage_x * dimension[1]), math.floor(bottom_left_corner_percentage_y * dimension[0])]
     bottom_right = [math.floor(bottom_right_corner_percentage_x * dimension[1]), math.floor(bottom_right_corner_percentage_y * dimension[0])]
-    shape = np.array([top_left, top_right, bottom_left, bottom_right])
+    shape = np.array([top_left, top_right, bottom_right, bottom_left])
     return shape
+
+def apply_mask(image, mask_shape):
+    mask = np.zeros_like(image)
+    fill_color = 255
+    cv2.fillPoly(mask, np.array([mask_shape]), fill_color)
+    masked_image = cv2.bitwise_and(image, mask)
+    return masked_image
 
 # Read a list of images
 images = os.listdir(path)
@@ -53,7 +60,9 @@ image_original = mpimg.imread(path + images[image_index]);
 image_gray = grayscale(image_original)
 image_blur = gaussian_blur(image_gray, kernel_size);
 image_canny = canny(image_blur, canny_low, canny_high)
-generate_mask(image_canny)
+mask_shape = generate_mask(image_canny)
+image_masked =  apply_mask(image_canny, mask_shape)
+
 # Plot the image in gray scale and show the image
-imgplot = plt.imshow(image_canny, cmap = 'gray')
+imgplot = plt.imshow(image_masked, cmap = 'gray')
 plt.show()
