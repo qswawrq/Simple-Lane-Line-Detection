@@ -8,10 +8,12 @@ import numpy as np
 import math
 import os
 import cv2
-from unittest.mock import right
+# import imageio
+from moviepy.editor import VideoFileClip
+
 
 # Parameters for image processing
-path = "resource/images/"
+path = "resource/vedios/"
 image_index = 3
 kernel_size = 5
 canny_low = 75
@@ -34,6 +36,8 @@ line_thickness = 11
 weight_param1 = 0.8
 weight_param2 = 1.0
 weight_param3 = 0.0
+left_line = []
+right_line = []
 
 # Grayscale
 def grayscale(image):
@@ -83,49 +87,40 @@ def draw_lines(image, lines, color, thickness):
             else:
                 right_lane_lines.append(line)
     # Draw the line in maximum length
-    left_x1_min = np.amin(np.array(left_lane_lines)[:,:,0])
-    left_y1_max = np.amax(np.array(left_lane_lines)[:,:,1])
-    left_x2_max = np.amax(np.array(left_lane_lines)[:,:,2])
-    left_y2_min = np.amin(np.array(left_lane_lines)[:,:,3])
-    right_x1_min = np.amin(np.array(right_lane_lines)[:,:,0])
-    right_y1_min = np.amin(np.array(right_lane_lines)[:,:,1])
-    right_x2_max = np.amax(np.array(right_lane_lines)[:,:,2])
-    right_y2_max = np.amax(np.array(right_lane_lines)[:,:,3])  
-    cv2.line(line_image, (left_x1_min, left_y1_max), (left_x2_max, left_y2_min), color, thickness)
-    cv2.line(line_image, (right_x1_min, right_y1_min), (right_x2_max, right_y2_max), color, thickness)
+    if(np.array(left_lane_lines).shape[0] != 0):
+        left_line.clear()
+        left_line.append(np.amin(np.array(left_lane_lines)[:,:,0]))
+        left_line.append(np.amax(np.array(left_lane_lines)[:,:,1]))
+        left_line.append(np.amax(np.array(left_lane_lines)[:,:,2]))
+        left_line.append(np.amin(np.array(left_lane_lines)[:,:,3]))
+    cv2.line(line_image, (left_line[0], left_line[1]), (left_line[2], left_line[3]), color, thickness)
+    if(np.array(right_lane_lines).shape[0] != 0):
+        right_line.clear()
+        right_line.append(np.amin(np.array(right_lane_lines)[:,:,0]))
+        right_line.append(np.amin(np.array(right_lane_lines)[:,:,1]))
+        right_line.append(np.amax(np.array(right_lane_lines)[:,:,2]))
+        right_line.append(np.amax(np.array(right_lane_lines)[:,:,3]))
+    cv2.line(line_image, (right_line[0], right_line[1]), (right_line[2], right_line[3]), color, thickness)
     return line_image
 
 # Combine two images in some weight
-def weighted_img(lines, image, a, b, c):
+def weighted_image(lines, image, a, b, c):
     return cv2.addWeighted(image, a, lines, b, c)
 
-# Read a list of images
-images = os.listdir(path)
-# Choose the target image
-image_original = mpimg.imread(path + images[image_index]);
-imgplot = plt.imshow(image_original)
-plt.show()
-# Process the image and plot them
-image_gray = grayscale(image_original)
-imgplot = plt.imshow(image_gray, cmap = "gray")
-plt.show()
-image_blur = gaussian_blur(image_gray, kernel_size);
-imgplot = plt.imshow(image_blur, cmap = "gray")
-plt.show()
-image_canny = canny(image_blur, canny_low, canny_high)
-imgplot = plt.imshow(image_canny, cmap = "gray")
-plt.show()
-mask_shape = generate_mask(image_canny)
-imgplot = plt.imshow(mask_shape, cmap = "gray")
-plt.show()
-image_masked =  apply_mask(image_canny, mask_shape)
-imgplot = plt.imshow(image_masked, cmap = "gray")
-plt.show()
-hough_lines = hough_transform(image_masked, rho, theta, threshold, min_line_len, max_line_gap)
-lines_image = draw_lines(image_masked, hough_lines, line_color, line_thickness)
-imgplot = plt.imshow(lines_image)
-plt.show()
-final_image = weighted_img(lines_image, image_original, weight_param1, weight_param2, weight_param3)
-# Plot the final image
-imgplot = plt.imshow(final_image)
-plt.show()
+# detect lane lines in one image
+def process_image(image_original):
+    image_gray = grayscale(image_original)
+    image_blur = gaussian_blur(image_gray, kernel_size);
+    image_canny = canny(image_blur, canny_low, canny_high)
+    mask_shape = generate_mask(image_canny)
+    image_masked =  apply_mask(image_canny, mask_shape)
+    hough_lines = hough_transform(image_masked, rho, theta, threshold, min_line_len, max_line_gap)
+    lines_image = draw_lines(image_masked, hough_lines, line_color, line_thickness)
+    final_image = weighted_image(lines_image, image_original, weight_param1, weight_param2, weight_param3)
+    return final_image
+
+# Process a vedio
+output_name = path + "result-solidYellowLeft.mp4"
+clip = VideoFileClip(path + "solidYellowLeft.mp4")
+final_clip = clip.fl_image(process_image)
+final_clip.write_videofile(output_name, audio=False)
