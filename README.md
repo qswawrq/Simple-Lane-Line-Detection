@@ -35,4 +35,4 @@ Identify lane lines on the road from a video stream.
 
 Sample video:
 
-![alt text](https://github.com/qswawrq/Simple-Lane-Line-Detection/blob/master/resource/README_images/ezgif-4-eaaa65fhttps://github.com/qswawrq/Simple-Lane-Line-Detection/blob/master/resource/README_images/ezgif-4-eaaa65f9f7.gif)
+![alt text](https://github.com/qswawrq/Simple-Lane-Line-Detection/blob/master/resource/README_images/ezgif-4-eaaa65f9f7.gif)
