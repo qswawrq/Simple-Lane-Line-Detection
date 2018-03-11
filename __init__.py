@@ -13,7 +13,7 @@ from moviepy.editor import VideoFileClip
 
 
 # Parameters for image processing
-path = "resource/vedios/"
+path = "resource/video/"
 image_index = 3
 kernel_size = 5
 canny_low = 75
@@ -119,7 +119,7 @@ def process_image(image_original):
     final_image = weighted_image(lines_image, image_original, weight_param1, weight_param2, weight_param3)
     return final_image
 
-# Process a vedio
+# Process a video
 output_name = path + "result-solidYellowLeft.mp4"
 clip = VideoFileClip(path + "solidYellowLeft.mp4")
 final_clip = clip.fl_image(process_image)
